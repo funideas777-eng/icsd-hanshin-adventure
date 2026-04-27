@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icsd-hanshin-v2';
+const CACHE_NAME = 'icsd-hanshin-v3';
 const STATIC_ASSETS = [
   '/icsd-hanshin-adventure/index.html',
   '/icsd-hanshin-adventure/map.html',
@@ -12,6 +12,12 @@ const STATIC_ASSETS = [
   '/icsd-hanshin-adventure/assets/images/mascot/simon-portrait.jpg',
   '/icsd-hanshin-adventure/assets/images/floors/floor-grid.jpg',
   '/icsd-hanshin-adventure/assets/images/misc/scoreboard-hero.jpg',
+  '/icsd-hanshin-adventure/assets/images/misc/splash.jpg',
+  '/icsd-hanshin-adventure/assets/images/mascot/simon-stickers.jpg',
+  '/icsd-hanshin-adventure/assets/images/foods/food-cards.jpg',
+  '/icsd-hanshin-adventure/assets/images/group/group-photo-badges.jpg',
+  '/icsd-hanshin-adventure/assets/images/emergency/emergency-badges.jpg',
+  '/icsd-hanshin-adventure/assets/images/medals/medals.jpg',
   '/icsd-hanshin-adventure/assets/icons/icon-192.png',
   '/icsd-hanshin-adventure/assets/icons/icon-512.png',
   '/icsd-hanshin-adventure/manifest.json',

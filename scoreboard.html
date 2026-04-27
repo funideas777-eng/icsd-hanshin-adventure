@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1A237E">
   <link rel="manifest" href="manifest.json">
   <title>排行榜 - ICSD × 漢神洲際冒險</title>
-  <link rel="stylesheet" href="css/common.css?v=icsd2">
+  <link rel="stylesheet" href="css/common.css?v=icsd3">
   <style>
     .score-hero { position:relative; height:160px; margin:0 -16px 12px; background:#050b22 center/cover no-repeat url('assets/images/misc/scoreboard-hero.jpg'); border-radius:0 0 18px 18px; overflow:hidden; }
     .score-hero::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(5,11,34,0.2) 0%, rgba(5,11,34,0.85) 100%); }
@@ -30,6 +30,10 @@
 <div class="page-container">
   <div class="score-hero">
     <div class="score-hero-text"><h1>🏆 即時積分戰報</h1><p>ICSD × 漢神洲際 · 每 5 分鐘自動更新 · 前 5 名加分</p></div>
+  </div>
+  <div class="medals-banner" style="margin:0 -16px 14px; padding:8px 16px; background:linear-gradient(180deg, rgba(255,179,0,0.10), rgba(5,11,34,0)); border-bottom:1px solid rgba(255,179,0,0.25);">
+    <div style="font-size:11px; color:#FFD740; font-weight:800; letter-spacing:2px; text-align:center; margin-bottom:6px;">🥇 ICSD × 漢神 冠軍勳章 🥈🥉</div>
+    <img src="assets/images/medals/medals.jpg" alt="完賽勳章 Top1 / Top2 / Top3 / 全勤 / 隊魂" style="width:100%; max-height:120px; object-fit:cover; border-radius:10px; border:1px solid rgba(255,179,0,0.32); box-shadow:0 4px 14px rgba(0,0,0,0.4);" loading="lazy">
   </div>
   <div style="text-align:center;margin-bottom:12px;"><button class="btn btn-secondary btn-sm" id="refreshBtn" onclick="ScoreboardEngine.manualRefresh()">🔄 刷新排行榜</button></div>
   <div class="score-tabs"><button class="score-tab active" data-tab="team" onclick="ScoreboardEngine.switchTab('team')">🏆 團隊排行</button><button class="score-tab" data-tab="game" onclick="ScoreboardEngine.switchTab('game')">🎮 遊戲排行</button></div>

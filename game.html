@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1a1a2e">
   <link rel="manifest" href="manifest.json">
   <title>遊戲 - ICSD × 漢神洲際冒險</title>
-  <link rel="stylesheet" href="css/common.css?v=icsd2">
+  <link rel="stylesheet" href="css/common.css?v=icsd3">
   <style>
     body { background:#1a1a2e; }
     .game-page { min-height:100vh; min-height:100dvh; position:relative; overflow:hidden; }
@@ -48,6 +48,15 @@
     .frank-header { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
     .frank-avatar { width:48px; height:48px; border-radius:50%; background:#0E1862 center/cover no-repeat url('assets/images/mascot/simon-portrait.jpg'); box-shadow:0 0 18px rgba(255,179,0,0.5); border:2px solid #FFB300; flex-shrink:0; position:relative; font-size:0; }
     .frank-avatar::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:2px solid rgba(255,179,0,0.32); animation:pulse 2s ease-in-out infinite; }
+    /* Simon 表情貼紙切片：1296x864 grid (3x2)，每格 432x432 → 縮放至 48px 顯示時 background-size 144x96 */
+    .frank-avatar.mood-success {
+      background:#0E1862 url('assets/images/mascot/simon-stickers.jpg') no-repeat -96px -48px / 144px 96px;
+      border-color:#00C896; box-shadow:0 0 22px rgba(0,200,150,0.55);
+    } /* cell 5 (R1C2) 香檳慶祝 */
+    .frank-avatar.mood-fail {
+      background:#0E1862 url('assets/images/mascot/simon-stickers.jpg') no-repeat 0 -48px / 144px 96px;
+      border-color:#FF6B6B; box-shadow:0 0 22px rgba(255,107,107,0.55);
+    } /* cell 3 (R1C0) face-palm */
     .frank-name { font-size:14px; font-weight:900; color:#FFD740; }
     .frank-role { font-size:11px; color:rgba(255,255,255,0.55); letter-spacing:0.5px; }
     .frank-msg { font-size:14px; color:rgba(255,255,255,0.92); line-height:1.6; margin-bottom:12px; }
@@ -490,6 +499,8 @@
   function showFrankMessage(passed) {
     var pool = passed ? FRANK_SUCCESS : FRANK_FAIL;
     var frank = pool[Math.floor(Math.random() * pool.length)];
+    var av = document.querySelector('.frank-avatar');
+    if (av) { av.classList.remove('mood-success','mood-fail'); av.classList.add(passed ? 'mood-success' : 'mood-fail'); }
     document.getElementById('frankMsg').textContent = frank.msg;
     var respEl = document.getElementById('frankResponses');
     respEl.innerHTML = '';

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1A237E">
   <link rel="manifest" href="manifest.json">
   <title>ICSD × 漢神洲際冒險</title>
-  <link rel="stylesheet" href="css/common.css?v=icsd2">
+  <link rel="stylesheet" href="css/common.css?v=icsd3">
   <style>
     .content-area { padding-bottom:70px; }
     /* Section headers */
@@ -410,6 +410,7 @@
 
     // Cooking section
     html += '<div class="section-header"><span class="section-header-icon">🍳</span><span class="section-header-title">美食料理挑戰</span><span class="section-header-badge">' + cooking.length + ' 道</span></div>';
+    html += '<div style="margin:0 16px 10px;"><img src="assets/images/foods/food-cards.jpg" alt="5 款料理任務：珍奶/湯包/韓烤/島語甜品/太陽餅" style="width:100%;border-radius:12px;border:1px solid rgba(255,179,0,0.25);box-shadow:0 4px 14px rgba(0,0,0,0.35);" loading="lazy"></div>';
     html += '<div class="section-desc">完成料理遊戲後，前往漢神洲際購物廣場消費，與食物合照打卡即可獲得團隊 <b style="color:#FF6F00;">250 分</b>！</div>';
     html += '<div class="game-grid">';
     cooking.forEach(function(t) {
@@ -437,6 +438,7 @@
 
     // Group photo section
     html += '<div class="section-header"><span class="section-header-icon">📸</span><span class="section-header-title">景點打卡任務</span><span class="section-header-badge">' + photos.length + ' 個</span></div>';
+    html += '<div style="margin:0 16px 10px;"><img src="assets/images/group/group-photo-badges.jpg" alt="3 款合照任務：漢神大愛心/飛躍洲際/寶山金字塔" style="width:100%;border-radius:12px;border:1px solid rgba(233,30,99,0.25);box-shadow:0 4px 14px rgba(0,0,0,0.35);" loading="lazy"></div>';
     html += '<div class="section-desc">全隊合作完成拍照條件，上傳照片經管理員審核通過即可獲得團隊 <b style="color:#E91E63;">250 分</b>！</div>';
     html += '<div class="game-grid">';
     photos.forEach(function(t) {
@@ -475,6 +477,7 @@
     // Emergency tasks section
     if (emergencyTasks.length > 0) {
       html += '<div class="section-header"><span class="section-header-icon">🚨</span><span class="section-header-title">緊急任務</span><span class="section-header-badge">進行中</span></div>';
+      html += '<div style="margin:0 16px 10px;"><img src="assets/images/emergency/emergency-badges.jpg" alt="3 緊急任務徽章：寶山召集令/玄彬密語/漢神尋寶" style="width:100%;border-radius:12px;border:1px solid rgba(244,67,54,0.32);box-shadow:0 4px 14px rgba(244,67,54,0.25);" loading="lazy"></div>';
       emergencyTasks.forEach(function(task) {
         var completed = getGameStatus(task.id) === 'completed';
         html += '<div class="emergency-banner" style="' + (completed ? 'opacity:0.5;animation:none;' : '') + '">';
