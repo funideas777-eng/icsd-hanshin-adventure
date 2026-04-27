@@ -1,0 +1,77 @@
+:root {
+  /* === ICSD × 漢神洲際冒險 主題 ===
+   * --primary  深藍 #1A237E   TSMC 寶山科技藍
+   * --secondary 金黃 #FFB300  漢神百貨金
+   * --accent   翡翠 #00C896   台中綠/晶圓綠
+   * --hanshin  暗紅 #C2185B   漢神品牌紅
+   * --bg       深藍黑 #050b22  晶圓夜空背景
+   */
+  --primary:#1A237E; --secondary:#FFB300; --accent:#00C896; --hanshin:#C2185B;
+  --bg:#050b22; --bg-card:rgba(255,255,255,0.06);
+  --text:#e6ecff; --text-light:#8a96b8;
+  --shadow:0 2px 16px rgba(255,179,0,0.08);
+  --radius:14px;
+  --glow-cyan:rgba(0,200,150,0.32); --glow-pink:rgba(255,179,0,0.32);
+  --glow-blue:rgba(26,35,126,0.45);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text); -webkit-tap-highlight-color:transparent; overflow-x:hidden; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:12px 24px; border-radius:var(--radius); font-size:15px; font-weight:700; border:none; cursor:pointer; transition:all 0.2s; }
+.btn-primary { background:linear-gradient(135deg,#1A237E,#3949AB); color:white; box-shadow:0 4px 15px rgba(26,35,126,0.45); }
+.btn-primary:active { background:#0E1862; transform:scale(0.97); }
+.btn-secondary { background:linear-gradient(135deg,#FFB300,#FF8F00); color:#1A237E; box-shadow:0 4px 15px rgba(255,179,0,0.35); }
+.btn-accent { background:linear-gradient(135deg,#00C896,#00897B); color:#fff; }
+.btn-outline { background:transparent; border:2px solid var(--secondary); color:var(--secondary); }
+.btn-block { width:100%; }
+.btn-lg { padding:16px 28px; font-size:17px; border-radius:16px; }
+.btn-sm { padding:8px 16px; font-size:13px; }
+.input,.select { width:100%; padding:14px 16px; border:2px solid rgba(255,179,0,0.22); border-radius:var(--radius); font-size:15px; background:rgba(255,255,255,0.05); color:var(--text); outline:none; transition:border-color 0.2s; }
+.input:focus,.select:focus { border-color:var(--secondary); box-shadow:0 0 12px var(--glow-pink); }
+.form-group { margin-bottom:16px; }
+.form-label { display:block; font-size:13px; font-weight:600; color:var(--secondary); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+.card { background:var(--bg-card); border:1px solid rgba(255,179,0,0.18); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); backdrop-filter:blur(10px); }
+.notification-bar { position:fixed; top:-60px; left:16px; right:16px; background:rgba(5,11,34,0.95); border:1px solid rgba(255,179,0,0.32); padding:12px 16px; border-radius:14px; box-shadow:0 4px 20px rgba(255,179,0,0.18); z-index:200; transition:top 0.4s ease; font-size:14px; color:var(--text); }
+.notification-bar.show { top:60px; }
+.message-panel { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--bg); z-index:150; transform:translateX(100%); transition:transform 0.3s ease; overflow-y:auto; padding:0; }
+.message-panel.show { transform:translateX(0); }
+.top-bar { position:sticky; top:0; display:flex; align-items:center; padding:12px 16px; background:rgba(5,11,34,0.95); border-bottom:1px solid rgba(255,179,0,0.18); z-index:50; backdrop-filter:blur(10px); }
+.top-bar-back { background:none; border:none; font-size:20px; cursor:pointer; width:40px; color:var(--text); }
+.top-bar-title { flex:1; text-align:center; font-size:16px; font-weight:700; color:var(--text); }
+.page-container { padding:16px; max-width:480px; margin:0 auto; }
+.rank-item { display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--bg-card); border:1px solid rgba(255,179,0,0.12); border-radius:12px; margin-bottom:8px; box-shadow:var(--shadow); animation:fadeIn 0.3s ease both; }
+.rank-number { width:28px; height:28px; border-radius:50%; background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
+.rank-number.top1 { background:linear-gradient(135deg,#FFD700,#FFA000); color:white; }
+.rank-number.top2 { background:linear-gradient(135deg,#C0C0C0,#9E9E9E); color:white; }
+.rank-number.top3 { background:linear-gradient(135deg,#CD7F32,#A1887F); color:white; }
+.rank-emoji { font-size:20px; }
+.rank-name { font-size:14px; font-weight:600; }
+.rank-bar { height:4px; background:linear-gradient(to right,var(--primary),var(--secondary)); border-radius:2px; margin-top:4px; transition:width 0.5s; }
+.rank-score { font-size:18px; font-weight:900; color:var(--accent); }
+.my-team { background:rgba(255,179,0,0.10); border-left:3px solid var(--secondary); }
+.game-hud { display:flex; justify-content:space-around; padding:8px 16px; background:rgba(0,0,0,0.3); }
+.hud-item { text-align:center; }
+.hud-label { font-size:10px; color:rgba(255,255,255,0.5); }
+.hud-value { font-size:20px; font-weight:900; color:white; }
+.game-canvas-container { width:100%; display:flex; align-items:center; justify-content:center; }
+.game-canvas-container canvas { display:block; max-width:100%; touch-action:none; }
+.danmaku-item { position:absolute; right:-300px; white-space:nowrap; color:rgba(255,255,255,0.6); font-size:13px; animation:danmakuScroll 8s linear forwards; pointer-events:none; }
+@keyframes danmakuScroll { from{right:-300px} to{right:calc(100% + 300px)} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+.spinner { width:32px; height:32px; border:3px solid rgba(255,179,0,0.18); border-top-color:var(--secondary); border-radius:50%; animation:spin 0.6s linear infinite; margin:0 auto; }
+/* === Simon 寶山玄彬 mascot 樣式 === */
+.simon-banner { display:flex; align-items:center; gap:12px; padding:12px 16px; margin:12px 0; background:linear-gradient(135deg, rgba(26,35,126,0.55), rgba(255,179,0,0.18)); border:1px solid rgba(255,179,0,0.35); border-radius:16px; box-shadow:0 4px 20px rgba(26,35,126,0.35); position:relative; overflow:hidden; }
+.simon-banner::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 80% 50%, rgba(255,179,0,0.15), transparent 60%); pointer-events:none; }
+.simon-avatar { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#1A237E,#3949AB); display:flex; align-items:center; justify-content:center; font-size:32px; flex-shrink:0; box-shadow:0 0 18px rgba(255,179,0,0.45); border:2px solid #FFB300; position:relative; z-index:1; }
+.simon-text { flex:1; position:relative; z-index:1; }
+.simon-name { font-size:13px; font-weight:800; color:#FFD740; letter-spacing:1.5px; }
+.simon-msg { font-size:14px; color:#fff; margin-top:2px; line-height:1.4; }
+/* 漢神金徽章 */
+.hanshin-badge { display:inline-block; padding:4px 12px; background:linear-gradient(135deg,#FFB300,#FF8F00); color:#1A237E; font-weight:900; font-size:11px; letter-spacing:2px; border-radius:12px; box-shadow:0 2px 8px rgba(255,179,0,0.35); }
+/* 寶山玄彬激勵彈幕 */
+.simon-cheer { position:fixed; bottom:24%; left:50%; transform:translateX(-50%) scale(0); padding:14px 26px; background:linear-gradient(135deg,#1A237E,#FFB300); border:2px solid #FFD740; color:#fff; font-weight:900; font-size:18px; border-radius:20px; box-shadow:0 6px 30px rgba(255,179,0,0.55); z-index:300; pointer-events:none; }
+.simon-cheer.show { animation:simonCheer 2.4s ease forwards; }
+@keyframes simonCheer { 0%{transform:translateX(-50%) scale(0);opacity:0} 20%{transform:translateX(-50%) scale(1.1);opacity:1} 80%{transform:translateX(-50%) scale(1);opacity:1} 100%{transform:translateX(-50%) scale(0.9);opacity:0} }
+@keyframes spin { to{transform:rotate(360deg)} }

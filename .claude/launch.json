@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "icsd-hanshin",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", "/Users/minialbert/claude/icsd-hanshin-adventure", "-p", "3461", "-c-1", "--cors"],
+      "port": 3461
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+name = "icsd-hanshin-api"
+main = "worker.js"
+compatibility_date = "2024-12-01"
+
+# Smart Placement：讓 Worker 跑在 D1 附近降低延遲
+[placement]
+mode = "smart"
+
+# ====== D1 Database ======
+[[d1_databases]]
+binding = "DB"
+database_name = "icsd-hanshin-db-prod"
+database_id = "133caec5-0537-44ff-b913-1195bc873343"
+
+# ====== R2 Storage (照片) ======
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "icsd-hanshin-photos-prod"
+
+# ====== KV (快取 + Rate Limit) ======
+[[kv_namespaces]]
+binding = "KV"
+id = "7fab4af22ab24d4d931069367fdc61c7"
+
+# ====== 環境變數（非機密）======
+[vars]
+CORS_ORIGIN = "https://funideas777-eng.github.io"
+R2_PUBLIC_URL = "https://pub-icsd-hanshin.r2.dev"
+
+# 機密變數 ADMIN_PASSWORD 和 SIGN_SECRET 透過 `wrangler secret put` 設定
+# 不寫在此檔案（避免被 git 追蹤）
+
+# ====== Durable Objects（團隊分數分散式計數器）======
+[[durable_objects.bindings]]
+name = "TEAM_COUNTER"
+class_name = "TeamCounter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TeamCounter"]

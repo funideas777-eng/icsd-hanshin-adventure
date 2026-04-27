@@ -1,0 +1,16 @@
+{
+  "name": "ICSD × 漢神洲際冒險",
+  "short_name": "ICSD漢神",
+  "description": "TSMC ICSD 部門年度團建活動 @ 台中漢神洲際購物廣場",
+  "start_url": "/icsd-hanshin-adventure/index.html",
+  "display": "standalone",
+  "scope": "/icsd-hanshin-adventure/",
+  "orientation": "portrait",
+  "background_color": "#050b22",
+  "theme_color": "#1A237E",
+  "lang": "zh-TW",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

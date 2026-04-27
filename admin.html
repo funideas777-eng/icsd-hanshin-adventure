@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1A237E">
+  <title>管理後台 - ICSD × 漢神洲際冒險</title>
+  <link rel="stylesheet" href="css/common.css?v=icsd1">
+  <style>
+    .admin-login { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:#0a0a1a; }
+    .admin-card { width:100%; max-width:400px; background:rgba(15,15,35,0.9); border:1px solid rgba(0,188,212,0.2); border-radius:20px; padding:32px 24px; box-shadow:0 10px 40px rgba(0,0,0,0.5); backdrop-filter:blur(20px); }
+    .admin-card h2 { color:var(--text); }
+    .admin-card h2 { text-align:center; margin-bottom:24px; }
+    .admin-panel { display:none; } .admin-panel.show { display:block; }
+    .admin-section { background:var(--bg-card); border:1px solid rgba(0,188,212,0.12); border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); backdrop-filter:blur(8px); }
+    .admin-section h3 { font-size:16px; margin-bottom:12px; color:var(--text); }
+    .stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+    .stat-card { background:rgba(255,255,255,0.04); border:1px solid rgba(0,188,212,0.1); border-radius:12px; padding:12px; text-align:center; }
+    .stat-card .num { font-size:24px; font-weight:900; color:var(--primary); }
+    .stat-card .label { font-size:11px; color:var(--text-light); margin-top:4px; }
+    .photo-review-card { background:rgba(255,255,255,0.04); border:1px solid rgba(0,188,212,0.1); border-radius:12px; padding:14px; margin-bottom:12px; }
+    .photo-review-card img { width:100%; border-radius:8px; margin-bottom:10px; max-height:240px; object-fit:cover; }
+    .photo-review-actions { display:flex; gap:8px; }
+    .badge-pending { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; background:#fff3e0; color:#e65100; }
+    .badge-approved { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; background:#e8f5e9; color:#2e7d32; }
+    .badge-rejected { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; background:#ffebee; color:#c62828; }
+  </style>
+</head>
+<body>
+<div class="admin-login" id="adminLogin"><div class="admin-card"><h2>🔐 管理後台</h2><div class="form-group"><label class="form-label">管理員密碼</label><input type="password" class="input" id="adminPwd" placeholder="請輸入密碼"></div><button class="btn btn-primary btn-block" onclick="adminAuth()">登入</button></div></div>
+<div class="admin-panel" id="adminPanel">
+  <div class="top-bar"><button class="top-bar-back" onclick="window.location.href='map.html'">←</button><div class="top-bar-title">🔧 管理後台</div><div style="width:40px;"></div></div>
+  <div class="page-container">
+    <div class="admin-section"><h3>📊 即時數據</h3><div class="stat-grid"><div class="stat-card"><div class="num" id="statPlayers">-</div><div class="label">已登入</div></div><div class="stat-card"><div class="num" id="statPlays">-</div><div class="label">遊戲次數</div></div><div class="stat-card"><div class="num" id="statPending">-</div><div class="label">待審照片</div></div><div class="stat-card"><div class="num" id="statTime">-</div><div class="label">目前時間</div></div></div><button class="btn btn-outline btn-sm" onclick="loadDashboard()">🔄 刷新</button></div>
+
+    <div class="admin-section"><h3>🎯 活動報到狀態</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num" id="statOnline" style="color:#0f0">-</div><div class="label">即時在線</div></div>
+        <div class="stat-card"><div class="num" id="statRegistered">-</div><div class="label">已報到</div></div>
+        <div class="stat-card"><div class="num" id="statOnlinePct">-%</div><div class="label">上線比例</div></div>
+        <div class="stat-card"><div class="num" id="statRegPct">-%</div><div class="label">報到比例</div></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <input type="number" class="input" id="eventTotalInput" placeholder="本日預計總人數" style="flex:1">
+        <button class="btn btn-primary btn-sm" onclick="saveEventTotal()">💾 儲存</button>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadEventStatus()">🔄 刷新</button>
+      <div id="teamCheckin" style="margin-top:12px;max-height:320px;overflow-y:auto;font-size:12px;"></div>
+    </div>
+
+    <div class="admin-section"><h3>🧪 測試模式</h3>
+      <p style="font-size:12px;color:var(--text-light);margin-bottom:10px;">目前：<b id="currentTestMode">-</b>｜正式活動請關閉（玩家需達過關門檻才能提交分數）</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="setTestMode('on')">🧪 開啟測試</button>
+        <button class="btn btn-outline btn-sm" onclick="setTestMode('off')">🎯 關閉（正式）</button>
+        <button class="btn btn-outline btn-sm" onclick="setTestMode('default')">↩️ 恢復預設</button>
+      </div>
+      <div style="font-size:11px;color:#999;margin-top:8px;">本按鈕只影響本裝置。URL 加 <code>?prod=1</code> 可強制正式，<code>?test=1</code> 可強制測試。</div>
+    </div>
+
+    <div class="admin-section"><h3>🚨 緊急後端切換</h3>
+      <p style="font-size:12px;color:var(--text-light);margin-bottom:10px;">目前：<b id="currentBackend">-</b></p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="switchBackendTo('cf')">⚡ Cloudflare</button>
+        <button class="btn btn-outline btn-sm" onclick="switchBackendTo('gas')">📊 GAS</button>
+        <button class="btn btn-outline btn-sm" onclick="clearBackendOverride()">↩️ 恢復預設</button>
+      </div>
+      <div style="font-size:11px;color:#999;margin-top:8px;">可分享 URL 給玩家：<br><code id="backendShareUrl" style="word-break:break-all;color:#0cf;"></code></div>
+    </div>
+
+    <div class="admin-section"><h3>📢 發送廣播</h3><textarea class="input" id="broadcastContent" rows="3" placeholder="輸入廣播訊息..." style="resize:none;"></textarea><div style="margin-top:12px;"><button class="btn btn-primary" onclick="sendBroadcast()">📢 發送</button></div></div>
+    <div class="admin-section"><h3>📸 照片審核</h3><button class="btn btn-outline btn-sm" onclick="loadPhotos()">🔄 刷新照片</button><div id="photoList" style="margin-top:12px;"></div></div>
+    <div class="admin-section"><h3>🚨 緊急任務管理</h3><div id="emergencyList"></div><button class="btn btn-primary btn-sm" onclick="triggerEmergency()" style="margin-top:12px;">🚀 手動觸發下一組</button></div>
+    <div class="admin-section"><h3>➕ 手動加分</h3><div class="form-group"><select class="select" id="pointsTeam"><option value="">選擇隊伍</option></select></div><div class="form-group"><input type="number" class="input" id="pointsAmount" placeholder="分數"></div><div class="form-group"><input type="text" class="input" id="pointsReason" placeholder="原因"></div><button class="btn btn-accent" id="addPointsBtn" onclick="addPoints()">確認加分</button></div>
+    <div class="admin-section"><h3>🔄 一鍵重置</h3><p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">清除所有遊戲紀錄、聊天記錄、玩家資料，讓遊戲重新開始。此操作無法復原！</p><button class="btn" style="background:#f44336;color:white;" onclick="resetAll()">⚠️ 重置所有資料</button></div>
+  </div>
+</div>
+<script src="js/config.js"></script><script src="js/api.js"></script><script src="js/auth.js"></script>
+<script>
+  API.init();
+  var _adminToken = null;
+  async function adminAuth() {
+    var pwd = document.getElementById('adminPwd').value;
+    if (!pwd) { alert('請輸入密碼'); return; }
+    try {
+      var result = await API.post('ADMIN', { action: 'adminLogin', password: pwd });
+      if (result && result.token) {
+        _adminToken = result.token;
+        sessionStorage.setItem('admin_token', _adminToken);
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminPanel').classList.add('show');
+        initAdmin();
+      } else { alert('密碼錯誤'); }
+    } catch(e) { alert('登入失敗：' + (e.message || '網路錯誤')); }
+  }
+  // 頁面重整時恢復 token
+  (function() { var t = sessionStorage.getItem('admin_token'); if (t) { _adminToken = t; } })();
+  function initAdmin() {
+    const sel = document.getElementById('pointsTeam');
+    CONFIG.TEAMS.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = `${t.emoji} ${t.name}`; sel.appendChild(o); });
+    loadDashboard(); loadPhotos(); renderEmergencyList();
+    loadEventStatus(); updateBackendDisplay(); updateTestModeDisplay();
+    var adPI = (CONFIG.POLL_INTERVAL && CONFIG.POLL_INTERVAL.adminDashboard) || { base: 8000, jitter: 2000 };
+    setInterval(() => { loadPhotos(); loadDashboard(); }, adPI.base + Math.random() * adPI.jitter);
+    setInterval(loadEventStatus, 15000);
+  }
+
+  // === 活動報到狀態 ===
+  async function loadEventStatus() {
+    try {
+      const d = await API.get('getEventStatus', { action:'getEventStatus' }, 0);
+      if (!d || d.error) return;
+      document.getElementById('statOnline').textContent = d.totalOnline || 0;
+      document.getElementById('statRegistered').textContent = d.totalRegistered || 0;
+      document.getElementById('statOnlinePct').textContent = (d.onlinePercent || 0) + '%';
+      document.getElementById('statRegPct').textContent = (d.registeredPercent || 0) + '%';
+      if (d.eventTotal && !document.getElementById('eventTotalInput').value) {
+        document.getElementById('eventTotalInput').placeholder = '本日預計總人數 (目前:' + d.eventTotal + ')';
+      }
+      // 各隊報到狀況
+      var html = '<table style="width:100%;border-collapse:collapse;"><tr style="background:rgba(0,188,212,0.08);"><th style="padding:6px;text-align:left;">隊伍</th><th style="padding:6px;">報到</th><th style="padding:6px;">在線</th></tr>';
+      (d.teams || []).forEach(function(t) {
+        var checkin = t.registered > 0 ? '✅' : '⬜';
+        html += '<tr style="border-bottom:1px solid rgba(255,255,255,0.06);"><td style="padding:6px;">' + checkin + ' ' + t.teamEmoji + ' ' + t.teamName + '</td><td style="padding:6px;text-align:center;">' + t.registered + '</td><td style="padding:6px;text-align:center;color:' + (t.online>0?'#0f0':'#666') + ';">' + t.online + '</td></tr>';
+      });
+      html += '</table>';
+      document.getElementById('teamCheckin').innerHTML = html;
+    } catch(e) { console.warn('loadEventStatus failed', e); }
+  }
+  async function saveEventTotal() {
+    var v = parseInt(document.getElementById('eventTotalInput').value);
+    if (!v || v < 0) { alert('請輸入有效人數'); return; }
+    try {
+      var res = await API.post('ADMIN', { action: 'updateEventTotal', token: _adminToken, total: v });
+      if (res && res.success) { alert('已更新為 ' + v + ' 人'); loadEventStatus(); }
+      else alert('失敗：' + (res.error || ''));
+    } catch(e) { alert('失敗：' + e.message); }
+  }
+
+  // === 測試模式切換 ===
+  function updateTestModeDisplay() {
+    var ls = localStorage.getItem('testMode');
+    var label = ls === 'off' ? '❌ 關閉（正式模式）' : ls === 'on' ? '🧪 強制開啟' : '🧪 預設開啟';
+    var el = document.getElementById('currentTestMode');
+    if (el) el.textContent = label;
+  }
+  function setTestMode(mode) {
+    if (mode === 'default') localStorage.removeItem('testMode');
+    else localStorage.setItem('testMode', mode);
+    alert('已設定：' + mode + '\n重新整理頁面或分享 URL 給玩家後生效');
+    updateTestModeDisplay();
+  }
+
+  // === 緊急後端切換 ===
+  function updateBackendDisplay() {
+    var cur = API.getBackend ? API.getBackend() : CONFIG.BACKEND;
+    document.getElementById('currentBackend').textContent = cur.toUpperCase();
+    var base = location.origin + location.pathname.replace(/admin\.html$/, '');
+    document.getElementById('backendShareUrl').textContent = base + '?backend=' + cur;
+  }
+  function switchBackendTo(target) {
+    if (API.switchBackend && API.switchBackend(target)) {
+      alert('已切換至 ' + target.toUpperCase() + '\n重新整理頁面生效');
+      updateBackendDisplay();
+    }
+  }
+  function clearBackendOverride() {
+    if (API.clearBackendOverride) {
+      API.clearBackendOverride();
+      alert('已清除覆寫，恢復預設後端');
+      updateBackendDisplay();
+    }
+  }
+  async function loadDashboard() {
+    try { const d = await API.get('getDashboard', { action:'getDashboard', token:_adminToken }, 0);
+      if (d) { document.getElementById('statPlayers').textContent = d.totalPlayers||0; document.getElementById('statPlays').textContent = d.totalPlays||0; document.getElementById('statPending').textContent = d.pendingPhotos||0; document.getElementById('statTime').textContent = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}); }
+    } catch {}
+  }
+  async function loadPhotos() {
+    try { const d = await API.get('getPendingPhotos', { action:'getPendingPhotos', token:_adminToken }, 0);
+      if (!d || !d.photos) return; const c = document.getElementById('photoList');
+      if (!d.photos.length) { c.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">沒有照片</div>'; return; }
+      const sorted = d.photos.sort((a,b) => a.status==='pending'&&b.status!=='pending'?-1:1);
+      c.innerHTML = sorted.map(p => { const team = CONFIG.TEAMS.find(t=>t.id===p.teamId); const badge = p.status==='approved'?'badge-approved':p.status==='rejected'?'badge-rejected':'badge-pending'; const text = p.status==='approved'?'✅已通過':p.status==='rejected'?'❌未通過':'⏳待審核';
+        return `<div class="photo-review-card"><img src="${p.thumbUrl||p.photoUrl}" loading="lazy"><div style="font-size:12px;color:var(--text-light);margin-bottom:8px;"><strong>${p.playerName}</strong> · ${team?team.emoji+' '+team.name:''} <span class="${badge}" style="margin-left:8px;">${text}</span></div>${p.status==='pending'?`<div class="photo-review-actions"><button class="btn btn-primary btn-sm" id="a-${p.submissionId}" onclick="verifyPhoto('${p.submissionId}',true,this)">✅ 通過 (+300分)</button><button class="btn btn-outline btn-sm" style="color:#f44336;border-color:#f44336;" id="r-${p.submissionId}" onclick="verifyPhoto('${p.submissionId}',false,this)">❌ 不通過</button></div>`:''}</div>`; }).join('');
+    } catch {}
+  }
+  async function verifyPhoto(id, approved, btn) {
+    if (!confirm(approved?'確定通過？將加 300 分':'確定不通過？')) return;
+    const a = document.getElementById('a-'+id), r = document.getElementById('r-'+id);
+    if (a) { a.disabled = true; a.textContent = '處理中...'; } if (r) r.disabled = true;
+    try { await API.post('ADMIN', { action:'verifyPhoto', token:_adminToken, submissionId:id, approved }); alert(approved?'已通過！':'已拒絕'); loadPhotos(); } catch { alert('失敗'); if (a) { a.disabled=false; a.textContent='✅ 通過'; } if (r) r.disabled=false; }
+  }
+  async function sendBroadcast() { const c = document.getElementById('broadcastContent').value.trim(); if (!c) return alert('請輸入內容'); try { await API.post('ADMIN', { action:'broadcast', token:_adminToken, type:'text', content:c }); alert('已發送！'); document.getElementById('broadcastContent').value=''; } catch { alert('失敗'); } }
+  async function addPoints() {
+    const t = document.getElementById('pointsTeam').value, p = parseInt(document.getElementById('pointsAmount').value), r = document.getElementById('pointsReason').value.trim();
+    if (!t||!p) return alert('請填寫完整');
+    const btn = document.getElementById('addPointsBtn'); btn.disabled=true; btn.textContent='提交中...';
+    try { await API.post('ADMIN', { action:'addManualPoints', token:_adminToken, teamId:parseInt(t), points:p, detail:r }); alert(`已加 ${p} 分！`); document.getElementById('pointsAmount').value=''; document.getElementById('pointsReason').value=''; btn.textContent='✅ 已送出'; setTimeout(()=>{ btn.disabled=false; btn.textContent='確認加分'; },3000); } catch { alert('失敗'); btn.disabled=false; btn.textContent='確認加分'; }
+  }
+
+  // === Emergency Task Management ===
+  function renderEmergencyList() {
+    const list = document.getElementById('emergencyList');
+    if (!list) return;
+    const tasks = CONFIG.EMERGENCY_TASKS || [];
+    list.innerHTML = tasks.map((t, i) => {
+      const statusColor = t.active ? '#4caf50' : '#999';
+      const statusText = t.active ? '✅ 已觸發' : '⏳ 待觸發';
+      return `<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(0,188,212,0.1);border-radius:12px;padding:14px;margin-bottom:10px;border-left:4px solid ${statusColor};">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><strong>${t.icon} ${t.name}</strong> <span style="font-size:11px;color:${statusColor};font-weight:700;">${statusText}</span></div>
+          <div style="font-size:12px;color:#999;">⏰ ${t.triggerTime}</div>
+        </div>
+        <div style="font-size:13px;color:#666;margin-top:6px;">${t.description}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+          <span style="font-size:12px;color:#FF6F00;font-weight:700;">🏅 +${t.points} 分</span>
+          ${!t.active ? `<button class="btn btn-primary btn-sm" onclick="activateEmergency(${i})">🚀 立即觸發</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function activateEmergency(idx) {
+    if (!confirm('確定觸發此緊急任務？將廣播通知所有玩家！')) return;
+    const task = CONFIG.EMERGENCY_TASKS[idx];
+    task.active = true;
+    task._triggered = true;
+    // Send broadcast notification to all players
+    API.post('ADMIN', { action:'broadcast', token:_adminToken, type:'emergency', content:`🚨 緊急任務【${task.name}】已開啟！${task.description}（完成可得 ${task.points} 分）`, title:task.name, id:task.id, points:task.points }).then(() => {
+      alert('已觸發並廣播：' + task.name);
+      renderEmergencyList();
+    }).catch(() => alert('廣播失敗'));
+  }
+
+  function triggerEmergency() {
+    const next = CONFIG.EMERGENCY_TASKS.find(t => !t.active);
+    if (!next) { alert('所有緊急任務已觸發完畢！'); return; }
+    const idx = CONFIG.EMERGENCY_TASKS.indexOf(next);
+    activateEmergency(idx);
+  }
+
+  // === Reset All ===
+  async function resetAll() {
+    if (!confirm('⚠️ 確定要重置所有資料嗎？\n\n將清除：\n• 所有遊戲分數紀錄\n• 所有聊天訊息\n• 所有玩家登入資料\n• 所有照片審核紀錄\n\n此操作無法復原！')) return;
+    if (!confirm('再次確認：真的要清除所有資料嗎？')) return;
+    try {
+      await API.post('ADMIN', { action:'resetAll', token:_adminToken });
+      alert('✅ 所有資料已重置！遊戲可以重新開始。');
+      loadDashboard(); loadPhotos();
+    } catch(e) {
+      alert('重置失敗：' + (e.message || '未知錯誤'));
+    }
+  }
+</script>
+</body>
+</html>
