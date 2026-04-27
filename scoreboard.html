@@ -6,11 +6,14 @@
   <meta name="theme-color" content="#1A237E">
   <link rel="manifest" href="manifest.json">
   <title>排行榜 - ICSD × 漢神洲際冒險</title>
-  <link rel="stylesheet" href="css/common.css?v=icsd1">
+  <link rel="stylesheet" href="css/common.css?v=icsd2">
   <style>
-    .score-header { text-align:center; padding:24px 0 16px; }
-    .score-header h1 { font-size:24px; }
-    .score-header p { font-size:13px; color:var(--text-light); }
+    .score-hero { position:relative; height:160px; margin:0 -16px 12px; background:#050b22 center/cover no-repeat url('assets/images/misc/scoreboard-hero.jpg'); border-radius:0 0 18px 18px; overflow:hidden; }
+    .score-hero::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(5,11,34,0.2) 0%, rgba(5,11,34,0.85) 100%); }
+    .score-hero-text { position:absolute; left:0; right:0; bottom:14px; text-align:center; z-index:1; }
+    .score-hero-text h1 { font-size:22px; color:#FFD740; font-weight:900; letter-spacing:2px; text-shadow:0 2px 12px rgba(0,0,0,0.65); }
+    .score-hero-text p { font-size:12px; color:rgba(255,255,255,0.85); margin-top:2px; letter-spacing:1px; }
+    .score-header { display:none; }
     .score-tabs { display:flex; margin:0 0 16px; }
     .score-tab { flex:1; padding:12px; text-align:center; font-size:14px; font-weight:600; border:none; background:rgba(255,255,255,0.06); color:var(--text-light); cursor:pointer; }
     .score-tab:first-child { border-radius:10px 0 0 10px; }
@@ -25,7 +28,9 @@
 <body>
 <div class="top-bar"><button class="top-bar-back" onclick="window.location.href='map.html'">←</button><div class="top-bar-title">🏆 即時戰報</div><div style="width:40px;"></div></div>
 <div class="page-container">
-  <div class="score-header"><h1>🏆 即時積分戰報</h1><p>每 5 分鐘自動更新 · 前5名加分</p></div>
+  <div class="score-hero">
+    <div class="score-hero-text"><h1>🏆 即時積分戰報</h1><p>ICSD × 漢神洲際 · 每 5 分鐘自動更新 · 前 5 名加分</p></div>
+  </div>
   <div style="text-align:center;margin-bottom:12px;"><button class="btn btn-secondary btn-sm" id="refreshBtn" onclick="ScoreboardEngine.manualRefresh()">🔄 刷新排行榜</button></div>
   <div class="score-tabs"><button class="score-tab active" data-tab="team" onclick="ScoreboardEngine.switchTab('team')">🏆 團隊排行</button><button class="score-tab" data-tab="game" onclick="ScoreboardEngine.switchTab('game')">🎮 遊戲排行</button></div>
   <div id="gameSelector"><div class="game-chips" id="gameChips"></div></div>

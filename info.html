@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#1A237E">
   <title>活動資訊 - ICSD × 漢神洲際冒險</title>
-  <link rel="stylesheet" href="css/common.css?v=icsd1">
+  <link rel="stylesheet" href="css/common.css?v=icsd2">
   <style>
     body { background:#050b22; min-height:100vh; min-height:100dvh; }
     .info-page { padding-bottom:32px; }
@@ -22,7 +22,7 @@
 
     /* Simon mascot card */
     .simon-card { display:flex; gap:14px; align-items:center; padding:14px; background:linear-gradient(135deg, rgba(26,35,126,0.6), rgba(255,179,0,0.18)); border:1px solid rgba(255,179,0,0.35); border-radius:16px; }
-    .simon-avatar-big { width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,#1A237E,#3949AB); display:flex; align-items:center; justify-content:center; font-size:46px; box-shadow:0 0 24px rgba(255,179,0,0.55); border:3px solid #FFB300; flex-shrink:0; }
+    .simon-avatar-big { width:96px; height:96px; border-radius:50%; background:#0E1862 center/cover no-repeat url('assets/images/mascot/simon-portrait.jpg'); box-shadow:0 0 24px rgba(255,179,0,0.55); border:3px solid #FFB300; flex-shrink:0; }
     .simon-info-name { font-size:18px; color:#fff; font-weight:900; }
     .simon-info-nick { font-size:13px; color:#FFD740; margin-top:2px; font-style:italic; }
     .simon-info-role { font-size:11px; color:rgba(255,255,255,0.6); margin-top:4px; letter-spacing:1px; }
@@ -77,7 +77,7 @@
   <div class="section">
     <div class="section-title">🎯 領隊主管 <span class="section-title-line"></span></div>
     <div class="simon-card">
-      <div class="simon-avatar-big">🕴️</div>
+      <div class="simon-avatar-big" aria-label="Simon 寶山玄彬"></div>
       <div>
         <div class="simon-info-name">Simon</div>
         <div class="simon-info-nick">寶山玄彬</div>
@@ -134,6 +134,7 @@
   <!-- Floors -->
   <div class="section">
     <div class="section-title">🏢 漢神洲際 樓層導覽 <span class="section-title-line"></span></div>
+    <img src="assets/images/floors/floor-grid.jpg" alt="漢神洲際 7 層樓視覺導覽" style="width:100%; border-radius:14px; margin-bottom:14px; border:1px solid rgba(255,179,0,0.25);" loading="lazy">
     <div class="floor-list" id="floorList">
       <div class="floor-row"><div class="floor-tier">B1</div><div class="floor-icon">🍱</div><div class="floor-desc"><b style="color:#FFB300;">LOPIA 美食街</b> · 日系超市、漢來上海湯包、TOM CAT 烘焙坊、空之色拉麵</div></div>
       <div class="floor-row"><div class="floor-tier">1F</div><div class="floor-icon">💎</div><div class="floor-desc"><b style="color:#FFB300;">閃耀經典館</b> · 國際精品、頂級化妝品、布娜飛香檳吧、藝術空間</div></div>
