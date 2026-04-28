@@ -301,6 +301,7 @@ async function handleGet(p, env) {
     case 'getOnlineTeam':    return getOnlineTeam(p, env);
     case 'getEventStatus':   return getEventStatus(p, env);
     case 'getLocationHint':  return getLocationHint(p, env);
+    case 'listKeepers':      return listKeepers(p, env);
     default: return { error: 'Unknown action: ' + action };
   }
 }
@@ -318,6 +319,8 @@ async function handlePost(body, env, request, ctx) {
     case 'broadcast':        return broadcast(body, env);
     case 'verifyPhoto':      return verifyPhoto(body, env);
     case 'verifyLocation':   return verifyLocation(body, env);
+    case 'upsertKeeper':     return upsertKeeper(body, env);
+    case 'syncKeepersFromSheet': return syncKeepersFromSheet(body, env);
     case 'addManualPoints':  return addManualPoints(body, env);
     case 'recalcTeamPoints': return recalcTeamPoints(body, env);
     case 'sendChat':         return sendChat(body, env);
@@ -351,13 +354,31 @@ async function auditLog(env, action, details) {
 // ============================================================
 // 關主驗證：getLocationHint / verifyLocation
 // ============================================================
+// 從 D1 讀取 keeper 配置（KV 快取 60s）
+async function getKeeperConfig(gameId, env) {
+  const cacheKey = 'keeper_cfg_' + gameId;
+  try {
+    const cached = await env.KV.get(cacheKey, 'json');
+    if (cached) return cached;
+  } catch (e) {}
+  const row = await env.DB.prepare(
+    'SELECT gameId, gameName, keeperName, keeperAvatar, hint, photoUrl, salt, answerHash, enabled FROM LocationKeepers WHERE gameId = ?'
+  ).bind(gameId).first();
+  if (row) {
+    try { await env.KV.put(cacheKey, JSON.stringify(row), { expirationTtl: 60 }); } catch (e) {}
+  }
+  return row;
+}
+
 async function getLocationHint(p, env) {
   const gameId = String(p.gameId || '');
   const playerId = String(p.playerId || '');
   if (!gameId || !playerId) return { error: 'gameId/playerId required' };
-  const cfg = LOCATION_CHECKS[gameId];
+  // 優先從 D1 讀；回退到 LOCATION_CHECKS（向下相容）
+  let cfg = await getKeeperConfig(gameId, env);
+  if (!cfg || !cfg.enabled) cfg = LOCATION_CHECKS[gameId] ? { ...LOCATION_CHECKS[gameId], enabled: 1 } : null;
   // 若該遊戲沒設定關主檢查 → 直接視為解鎖
-  if (!cfg) return { required: false, unlocked: true };
+  if (!cfg || !cfg.enabled) return { required: false, unlocked: true };
 
   let unlocked = false;
   try {
@@ -383,8 +404,9 @@ async function verifyLocation(body, env) {
   if (!gameId || !playerId) return { ok: false, error: 'gameId/playerId required' };
   if (!answer || answer.length > 100) return { ok: false, error: '輸入格式錯誤' };
 
-  const cfg = LOCATION_CHECKS[gameId];
-  if (!cfg) return { ok: true, unlocked: true }; // 無需驗證
+  let cfg = await getKeeperConfig(gameId, env);
+  if (!cfg || !cfg.enabled) cfg = LOCATION_CHECKS[gameId] ? { ...LOCATION_CHECKS[gameId], enabled: 1 } : null;
+  if (!cfg || !cfg.enabled) return { ok: true, unlocked: true }; // 無需驗證
 
   // 次數限制：10 分鐘 5 次
   const attemptKey = `loc_attempt:${playerId}:${gameId}`;
@@ -418,6 +440,98 @@ async function verifyLocation(body, env) {
   // 不記錄明文答案
   await auditLog(env, 'locationUnlock', { playerId, gameId });
   return { ok: true, unlocked: true };
+}
+
+// ============================================================
+// Admin: 關主配置管理（D1 LocationKeepers）
+// ============================================================
+async function listKeepers(p, env) {
+  if (!await adminCheck(p.token, env)) return { error: 'Unauthorized' };
+  const { results } = await env.DB.prepare(
+    'SELECT gameId, gameName, keeperName, keeperAvatar, hint, photoUrl, enabled, ' +
+    'CASE WHEN answerHash IS NOT NULL AND answerHash != "" THEN 1 ELSE 0 END AS hasAnswer, ' +
+    'updatedAt FROM LocationKeepers ORDER BY gameId'
+  ).all();
+  return { keepers: results };
+}
+
+async function upsertKeeper(body, env) {
+  if (!await adminCheck(body.token, env)) return { error: 'Unauthorized' };
+  const { gameId, gameName, keeperName, keeperAvatar, hint, photoUrl, answer, enabled } = body;
+  if (!gameId) return { error: 'gameId required' };
+  // 產生 salt + answerHash（answer 為明文，由 admin 提供）
+  const salt = body.salt || ('icsd-' + gameId + '-' + Math.random().toString(36).slice(2, 10));
+  const ans = String(answer || '').trim();
+  let answerHash = '';
+  if (ans) {
+    answerHash = await sha256hex(salt + normalizeAnswer(ans));
+  }
+  await env.DB.prepare(
+    'INSERT INTO LocationKeepers (gameId, gameName, keeperName, keeperAvatar, hint, photoUrl, salt, answerHash, enabled, updatedAt) ' +
+    'VALUES (?,?,?,?,?,?,?,?,?,?) ' +
+    'ON CONFLICT(gameId) DO UPDATE SET ' +
+    'gameName=excluded.gameName, keeperName=excluded.keeperName, keeperAvatar=excluded.keeperAvatar, ' +
+    'hint=excluded.hint, photoUrl=excluded.photoUrl, ' +
+    'salt=CASE WHEN excluded.answerHash != "" THEN excluded.salt ELSE LocationKeepers.salt END, ' +
+    'answerHash=CASE WHEN excluded.answerHash != "" THEN excluded.answerHash ELSE LocationKeepers.answerHash END, ' +
+    'enabled=excluded.enabled, updatedAt=excluded.updatedAt'
+  ).bind(
+    gameId, gameName || gameId, keeperName || '關主', keeperAvatar || '🧙',
+    hint || '', photoUrl || '', salt, answerHash, enabled ? 1 : 0, Date.now()
+  ).run();
+  // 清除快取
+  try { await env.KV.delete('keeper_cfg_' + gameId); } catch (e) {}
+  await auditLog(env, 'keeperUpsert', { gameId, hasAnswer: !!ans, enabled: !!enabled });
+  return { ok: true };
+}
+
+// 從 Google Sheet (CSV export URL) 一次同步全部 keeper 配置
+// 預期欄位：gameId, gameName, keeperName, keeperAvatar, hint, photoUrl, answer, enabled
+async function syncKeepersFromSheet(body, env) {
+  if (!await adminCheck(body.token, env)) return { error: 'Unauthorized' };
+  const sheetCsvUrl = body.sheetCsvUrl;
+  if (!sheetCsvUrl) return { error: 'sheetCsvUrl required' };
+  let csv;
+  try {
+    const r = await fetch(sheetCsvUrl);
+    if (!r.ok) return { error: 'Fetch sheet failed: HTTP ' + r.status };
+    csv = await r.text();
+  } catch (e) {
+    return { error: 'Fetch sheet error: ' + e.message };
+  }
+  // 簡易 CSV 解析（不支援欄位內含逗號的引號跳脫，建議 sheet 中避免逗號）
+  const lines = csv.split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (lines.length < 2) return { error: 'Sheet has no data rows' };
+  const header = lines[0].split(',').map(s => s.trim().replace(/^"|"$/g, ''));
+  const idx = name => header.indexOf(name);
+  const required = ['gameId', 'keeperName', 'hint', 'answer'];
+  for (const r of required) if (idx(r) < 0) return { error: 'Missing column: ' + r };
+  const updates = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(s => s.trim().replace(/^"|"$/g, ''));
+    const row = {};
+    header.forEach((h, j) => row[h] = cols[j] || '');
+    if (!row.gameId) continue;
+    const enabled = (row.enabled || '0').match(/^(1|true|yes|y)$/i) ? 1 : 0;
+    const salt = 'icsd-' + row.gameId + '-2026';
+    let answerHash = '';
+    if (row.answer) answerHash = await sha256hex(salt + normalizeAnswer(row.answer));
+    await env.DB.prepare(
+      'INSERT INTO LocationKeepers (gameId, gameName, keeperName, keeperAvatar, hint, photoUrl, salt, answerHash, enabled, updatedAt) ' +
+      'VALUES (?,?,?,?,?,?,?,?,?,?) ' +
+      'ON CONFLICT(gameId) DO UPDATE SET ' +
+      'gameName=excluded.gameName, keeperName=excluded.keeperName, keeperAvatar=excluded.keeperAvatar, ' +
+      'hint=excluded.hint, photoUrl=excluded.photoUrl, salt=excluded.salt, answerHash=excluded.answerHash, ' +
+      'enabled=excluded.enabled, updatedAt=excluded.updatedAt'
+    ).bind(
+      row.gameId, row.gameName || row.gameId, row.keeperName || '關主', row.keeperAvatar || '🧙',
+      row.hint || '', row.photoUrl || '', salt, answerHash, enabled, Date.now()
+    ).run();
+    try { await env.KV.delete('keeper_cfg_' + row.gameId); } catch (e) {}
+    updates.push({ gameId: row.gameId, enabled, hasAnswer: !!row.answer, hasPhoto: !!row.photoUrl });
+  }
+  await auditLog(env, 'keeperSync', { count: updates.length });
+  return { ok: true, count: updates.length, updates };
 }
 
 // Admin 驗證
